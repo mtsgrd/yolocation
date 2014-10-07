@@ -56,6 +56,7 @@ func search(query, location string) *searchResponseType {
 	params.Add("open", "true")
 	apiUrl.RawQuery = params.Encode()
 
+	log.Println("Executing search :", apiUrl.String())
 	resp, err := http.Get(apiUrl.String())
 	defer resp.Body.Close()
 	if err != nil {
@@ -81,7 +82,7 @@ func getMapUrl(placeId string) string {
 	params.Add("placeid", placeId)
 	apiUrl.RawQuery = params.Encode()
 
-	log.Println(apiUrl.String())
+	log.Println("Requesting place details:", apiUrl.String())
 	resp, err := http.Get(apiUrl.String())
 	defer resp.Body.Close()
 	if err != nil {
@@ -101,6 +102,7 @@ func getMapUrl(placeId string) string {
 }
 
 func sendYo(username, link string) {
+	log.Println("Sending yo link to:", username, link)
 	_, err := http.PostForm(yoApiUrl, url.Values{"api_token": {yoApiToken},
 		"username": {username}, "link": {link}})
 	if err != nil {
@@ -110,7 +112,9 @@ func sendYo(username, link string) {
 }
 
 func (c App) Yo(query string) revel.Result {
-	log.Println("Executing search for:", query)
+	log.Println("Yo API Token:", yoApiToken)
+	log.Println("Yo API URL:", yoApiUrl)
+	log.Println("Google API key:", googlePlacesApiKey)
 	username := c.Params.Get("username")
 	userLocation := c.Params.Get("location")
 	response := search(query, userLocation)

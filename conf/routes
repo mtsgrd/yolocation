@@ -4,7 +4,7 @@
 
 module:testrunner
 
-GET     /:query                                 App.Yo
-
 # Ignore favicon requests
 GET     /favicon.ico                            404
+
+GET     /:query                                 App.Yo
