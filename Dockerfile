@@ -5,7 +5,6 @@ FROM golang
 # Build the outyet command inside the container.
 # (You may fetch or manage dependencies here,
 # either manually or with a tool like "godep".)
-RUN echo "world"
 RUN go get github.com/revel/cmd/revel
 RUN go get -u -d github.com/mtsgrd/yolocation/...
 
