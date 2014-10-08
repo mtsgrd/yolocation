@@ -47,7 +47,7 @@ type placeResultType struct {
 func search(query, location string) *searchResponseType {
 	apiUrl, _ := url.Parse("https://maps.googleapis.com/maps/api/place/textsearch/json")
 	params := apiUrl.Query()
-	s := strings.Split(location, ",")
+	s := strings.Split(location, ";")
 	lat, lng := s[0], s[1]
 	params.Add("location", fmt.Sprintf("%v,%v", lat, lng))
 	params.Add("key", googlePlacesApiKey)
