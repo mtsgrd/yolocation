@@ -134,6 +134,7 @@ func (c App) Yo(query string) revel.Result {
 		sendYo(username, mapUrl)
 		return c.RenderText(mapUrl)
 	} else {
+		sendYo(username, "")
 		return c.RenderText("No search results found.")
 	}
 }
