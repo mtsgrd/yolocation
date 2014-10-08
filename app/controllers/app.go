@@ -115,6 +115,7 @@ func (c App) Yo(query string) revel.Result {
 	log.Println("Yo API Token:", yoApiToken)
 	log.Println("Yo API URL:", yoApiUrl)
 	log.Println("Google API key:", googlePlacesApiKey)
+	log.Println(c.Request.URL.String())
 	username := c.Params.Get("username")
 	userLocation := c.Params.Get("location")
 	response := search(query, userLocation)
