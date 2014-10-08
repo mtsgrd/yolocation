@@ -78,7 +78,6 @@ func search(query, location string) *searchResponseType {
 
 	if err = json.Unmarshal(body, &res); err != nil {
 		log.Fatal("Invalid json response.", apiUrl)
-		panic(err)
 	}
 	return &res
 }
@@ -103,7 +102,6 @@ func getMapUrl(placeId string) string {
 
 	if err = json.Unmarshal(body, &res); err != nil {
 		log.Fatal("Invalid json response.", apiUrl)
-		panic(err)
 	}
 	return res.Result.Url
 }
@@ -115,7 +113,6 @@ func sendYo(username, link string) {
 		"username": {username}, "link": {link}})
 	if err != nil {
 		log.Fatal("Failed to send Yo.")
-		panic(err)
 	}
 }
 
