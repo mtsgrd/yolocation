@@ -52,18 +52,18 @@ type (
 
 // Searches the Google Places API.
 func search(query, location string) *searchResponseType {
-
-	apiUrl, _ := url.Parse("https://maps.googleapis.com/maps/api/place/textsearch/json")
-
-	// Add query parameters.
-	params := apiUrl.Query()
 	s := strings.Split(location, ";")
 	lat, lng := s[0], s[1]
-	params.Add("location", fmt.Sprintf("%v,%v", lat, lng))
-	params.Add("key", googlePlacesApiKey)
-	params.Add("query", query)
-	params.Add("radius", radius)
-	params.Add("open", "true")
+
+	var params url.Values = map[string][]string{
+		"location": {fmt.Sprintf("%v,%v", lat, lng)},
+		"key":      {googlePlacesApiKey},
+		"query":    {query},
+		"radius":   {radius},
+		"open":     {"true"},
+	}
+
+	apiUrl, _ := url.Parse("https://maps.googleapis.com/maps/api/place/textsearch/json")
 	apiUrl.RawQuery = params.Encode()
 
 	revel.INFO.Println("Executing search :", apiUrl.String())
@@ -84,10 +84,12 @@ func search(query, location string) *searchResponseType {
 
 // Looks up place information and returns a direct link.
 func getMapUrl(placeId string) string {
+	var params url.Values = map[string][]string{
+		"key":     {googlePlacesApiKey},
+		"placeid": {placeId},
+	}
+
 	apiUrl, _ := url.Parse("https://maps.googleapis.com/maps/api/place/details/json")
-	params := apiUrl.Query()
-	params.Add("key", googlePlacesApiKey)
-	params.Add("placeid", placeId)
 	apiUrl.RawQuery = params.Encode()
 
 	revel.INFO.Println("Requesting place details:", apiUrl.String())
@@ -134,7 +136,13 @@ func (c App) Yo(query string) revel.Result {
 		sendYo(username, mapUrl)
 		return c.RenderText(mapUrl)
 	} else {
-		sendYo(username, "")
+		notFoundMessage := fmt.Sprintf("No %v found", query)
+		var notFoundQuery url.Values = map[string][]string{
+			"text": {notFoundMessage},
+		}
+		notFoundUrl := url.URL{Scheme: "http", Host: "www.yotext.co",
+			RawQuery: notFoundQuery.Encode()}
+		sendYo(username, notFoundUrl.String())
 		return c.RenderText("No search results found.")
 	}
 }
