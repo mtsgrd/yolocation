@@ -129,7 +129,13 @@ func (c App) Yo(query string) revel.Result {
 		sendYo(username, mapUrl)
 		return c.RenderText(mapUrl)
 	}
-	return c.RenderText("")
+	if len(response.Results) > 0 {
+		mapUrl := getMapUrl(response.Results[0].PlaceId)
+		sendYo(username, mapUrl)
+		return c.RenderText(mapUrl)
+	} else {
+		return c.RenderText("No search results found.")
+	}
 }
 
 func init() {
