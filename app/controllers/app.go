@@ -39,10 +39,12 @@ type (
 
 	searchResponseType struct {
 		Results searchResultsType
+		Status  string
 	}
 
 	placeResponseType struct {
 		Result placeResultType
+		Status string
 	}
 
 	placeResultType struct {
@@ -83,7 +85,7 @@ func search(query, location string) *searchResponseType {
 }
 
 // Looks up place information and returns a direct link.
-func getMapUrl(placeId string) string {
+func getPlaceInfo(placeId string) (string, string) {
 	var params url.Values = map[string][]string{
 		"key":     {googlePlacesApiKey},
 		"placeid": {placeId},
@@ -105,7 +107,7 @@ func getMapUrl(placeId string) string {
 	if err = json.Unmarshal(body, &res); err != nil {
 		log.Fatal("Invalid json response.", apiUrl)
 	}
-	return res.Result.Url
+	return res.Result.Url, res.Status
 }
 
 // Sends a Yo back to the user who invoked the search.
@@ -118,33 +120,41 @@ func sendYo(username, link string) {
 	}
 }
 
+func sendYoText(username, message string) {
+	var msgQuery url.Values = map[string][]string{
+		"text": {message},
+	}
+	msgUrl := url.URL{Scheme: "http", Host: "www.yotext.co",
+		RawQuery: msgQuery.Encode()}
+	sendYo(username, msgUrl.String())
+}
+
 func (c App) Yo(query string) revel.Result {
 	revel.INFO.Println("Handling request for:", c.Request.URL.String())
 	username := c.Params.Get("username")
 	userLocation := c.Params.Get("location")
 	response := search(query, userLocation)
+	if response.Status != "OK" {
+		status := fmt.Sprintf("%v: %v", "error", response.Status)
+		sendYoText(username, status)
+		return c.RenderText(status)
+	}
 	for _, result := range response.Results {
 		if strings.ToLower(result.Name) != query {
 			continue
 		}
-		mapUrl := getMapUrl(result.PlaceId)
-		sendYo(username, mapUrl)
-		return c.RenderText(mapUrl)
-	}
-	if len(response.Results) > 0 {
-		mapUrl := getMapUrl(response.Results[0].PlaceId)
-		sendYo(username, mapUrl)
-		return c.RenderText(mapUrl)
-	} else {
-		notFoundMessage := fmt.Sprintf("No %v found", query)
-		var notFoundQuery url.Values = map[string][]string{
-			"text": {notFoundMessage},
+		mapUrl, status := getPlaceInfo(result.PlaceId)
+		if status != "OK" {
+			status := fmt.Sprintf("%v: %v", "error", status)
+			sendYoText(username, status)
+			return c.RenderText(status)
 		}
-		notFoundUrl := url.URL{Scheme: "http", Host: "www.yotext.co",
-			RawQuery: notFoundQuery.Encode()}
-		sendYo(username, notFoundUrl.String())
-		return c.RenderText("No search results found.")
+		sendYo(username, mapUrl)
+		return c.RenderText(mapUrl)
 	}
+	notFoundMessage := fmt.Sprintf("No %v found", query)
+	sendYoText(username, notFoundMessage)
+	return c.RenderText("No search results found.")
 }
 
 func init() {
